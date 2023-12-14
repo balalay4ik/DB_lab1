@@ -33,22 +33,20 @@ namespace DB_lab1
 
         private void AddRow()
         {
-            string attrName = "";
-            string attr = "";
-            if (textBox1.Text != "")
-            {
-                attr += $", '{textBox1.Text}'";
-                attrName += $", {label1.Text}";
-            }
-            else
+            if (textBox1.Text == "")
             {
                 errormsg.Text = "name не повино бути null";
                 return;
             }
 
+            SportObjectTable sport = new SportObjectTable()
+            {
+                name = textBox1.Text
+            };
+
             try
             {
-                db.Insert<SportObjectTable>(attr, attrName);
+                db.Insert<SportObjectTable>(sport);
             }
             catch (Exception er)
             {
@@ -61,21 +59,21 @@ namespace DB_lab1
 
         private void EditRow()
         {
-            string attr = "";
-
-            if (textBox1.Text != "")
-            {
-                attr += $"\"{label1.Text}\" = \'{textBox1.Text}\'";
-            }
-            else
+            if (textBox1.Text == "")
             {
                 errormsg.Text = "name не повино бути null";
                 return;
             }
 
+            SportObjectTable sport = new SportObjectTable()
+            {
+                id = (table as SportObjectTable).id,
+                name = textBox1.Text
+            };
+
             try
             {
-                db.Edit<SportObjectTable>(table.GetId(), attr);
+                db.Edit<SportObjectTable>(sport.id, sport);
             }
             catch (Exception er)
             {
@@ -94,10 +92,10 @@ namespace DB_lab1
         private void InitTable()
         {
             SportObjectTable sport = table as SportObjectTable;
-            textBox1.Text = sport.Name;
+            textBox1.Text = sport.name;
         }
 
-        public override void SearchMode(DataBase DB)
+        public override void SearchMode(DataBaseContext DB)
         {
             db = DB;
             this.Controls.Remove(button1);
@@ -106,21 +104,9 @@ namespace DB_lab1
 
         private void Filter(object sender, KeyEventArgs e)
         {
-            string attr = "";
-
-            List<string> conditions = new List<string>();
-
-            if (!string.IsNullOrEmpty(textBox1.Text))
-            {
-                conditions.Add($"{label1.Text} LIKE '%{textBox1.Text}%'");
-            }
-
-            if (conditions.Count > 0)
-            {
-                attr = string.Join(" AND ", conditions);
-            }
-
-            db.Search<SportObjectTable>(attr);
+            db.Search<SportObjectTable>(
+                x => string.IsNullOrEmpty(textBox1.Text) || x.name.Contains(textBox1.Text)
+            );
         }
     }
 }

@@ -36,22 +36,20 @@ namespace DB_lab1
 
         private void AddRow()
         {
-            string attrName = "";
-            string attr = "";
-            if (textBox1.Text != "")
-            {
-                attr += $", '{textBox1.Text}'";
-                attrName += $", {label1.Text}";
-            }
-            else
+            if (textBox1.Text == "")
             {
                 errormsg.Text = "name не повино бути null";
                 return;
             }
 
+            CompanyTable company = new CompanyTable()
+            {
+                company_name = textBox1.Text
+            };
+
             try
             {
-                db.Insert<CompanyTable>(attr, attrName);
+                db.Insert(company);
             }
             catch (Exception er)
             {
@@ -62,22 +60,21 @@ namespace DB_lab1
 
         private void EditRow()
         {
-            string attr = "";
-
-            if (textBox1.Text != "")
-            {
-                attr += $"\"{label1.Text}\" = \'{textBox1.Text}\'";
-            }
-            else
+            if (textBox1.Text == "")
             {
                 errormsg.Text = "name не повино бути null";
                 return;
             }
 
-            
+            CompanyTable company = new CompanyTable()
+            {
+                id = (table as CompanyTable).id,
+                company_name = textBox1.Text
+            };
+
             try
             {
-                db.Edit<CompanyTable>(table.GetId(), attr);
+                db.Edit<CompanyTable>(company.id, company);
             }
             catch (Exception er)
             {
@@ -95,10 +92,10 @@ namespace DB_lab1
         private void InitTable()
         {
             CompanyTable company = table as CompanyTable;
-            textBox1.Text = company.Name;
+            textBox1.Text = company.company_name;
         }
 
-        public override void SearchMode(DataBase DB)
+        public override void SearchMode(DataBaseContext DB)
         {
             db = DB;
             this.Controls.Remove(button1);
@@ -107,21 +104,9 @@ namespace DB_lab1
 
         private void Filter(object sender, KeyEventArgs e)
         {
-            string attr = "";
-
-            List<string> conditions = new List<string>();
-
-            if (!string.IsNullOrEmpty(textBox1.Text))
-            {
-                conditions.Add($"{label1.Text} LIKE '%{textBox1.Text}%'");
-            }
-
-            if (conditions.Count > 0)
-            {
-                attr = string.Join(" AND ", conditions);
-            }
-
-            db.Search<CompanyTable>(attr);
+            db.Search<CompanyTable>(
+                x => string.IsNullOrEmpty(textBox1.Text) || x.company_name.Contains(textBox1.Text)
+            );
         }
     }
 }

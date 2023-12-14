@@ -22,7 +22,7 @@ namespace DB_lab1
         {
             try
             {
-                db.Command(richTextBox1.Text);
+                //db.Command(richTextBox1.Text);
                 label1.Text = "";
             }
             catch (Exception er)

@@ -12,7 +12,7 @@ namespace DB_lab1
 {
     public partial class TableForm : Form
     {
-        protected DataBase db;
+        protected DataBaseContext db;
         protected bool isNew;
         protected Table table;
         public TableForm()
@@ -20,7 +20,7 @@ namespace DB_lab1
             InitializeComponent();
         }
 
-        public void InitDB(DataBase DB, bool _isNew)
+        public void InitDB(DataBaseContext DB, bool _isNew)
         {
             db = DB;
             isNew = _isNew;
@@ -31,7 +31,7 @@ namespace DB_lab1
             table = _table;
         }
 
-        public virtual void SearchMode(DataBase DB) {}
+        public virtual void SearchMode(DataBaseContext DB) {}
 
         private void TableForm_Load(object sender, EventArgs e)
         {

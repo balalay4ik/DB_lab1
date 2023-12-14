@@ -8,12 +8,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Npgsql;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace DB_lab1
 {
     public partial class Main : Form
     {
-        private DataBase db;
+        private DataBaseContext db;
         private string selectedTable = null;
 
         private TableForm tableForm;
@@ -21,10 +22,11 @@ namespace DB_lab1
         public Main()
         {
             InitializeComponent();
-            db = new DataBase(dataGridView1);
+            //db = new DataBase1(dataGridView1);
+            db = new DataBaseContext(dataGridView1);
             dataGridView1.AllowUserToAddRows = false;
             dataGridView1.ReadOnly = true;
-            db.Connect();
+            //db.Connect();
 
             comboBox1.Items.Add("Client");
             comboBox1.Items.Add("Company");
@@ -49,6 +51,8 @@ namespace DB_lab1
         private void Form1_Load(object sender, EventArgs e)
         {
             db.LoadRecords<ClientTable>();
+
+
             this.Name = "Main";
             this.Text = "Main";
         }
@@ -75,31 +79,34 @@ namespace DB_lab1
         {
             if (tableForm != null) tableForm.Close();
             Table table = null;
+            int Id = (int)dataGridView1.CurrentRow.Cells["id"].Value;
 
             if (selectedTable == "Client")
             {
                 tableForm = new ClientForm();
                 table = new ClientTable();
+                table = db.GetRowParams<ClientTable>(Id);
             }
             else if (selectedTable == "Company")
             {
                 tableForm = new CompanyForm();
                 table = new CompanyTable();
+                table = db.GetRowParams<CompanyTable>(Id);
             }
             else if (selectedTable == "Reservation")
             {
                 tableForm = new ReservationForm();
                 table = new ReservationTable();
+                table = db.GetRowParams<ReservationTable>(Id);
             }
             else if (selectedTable == "Sport_object")
             {
                 tableForm = new SportObjectForm();
                 table = new SportObjectTable();
+                table = db.GetRowParams<SportObjectTable>(Id);
             }
 
             tableForm.InitDB(db, true);
-
-            table.Fill(dataGridView1.CurrentRow);
 
             tableForm.InitTable(table);
             tableForm.Show();
@@ -126,7 +133,7 @@ namespace DB_lab1
         private void Query_Click(object sender, EventArgs e)
         {
             TableForm query = new Query();
-            query.InitDB(db, true);
+            //query.InitDB(db, true);
             query.Show();
         }
 
@@ -134,10 +141,10 @@ namespace DB_lab1
         {
             int count = (int)numericUpDown1.Value;
 
-            if (selectedTable == "Client") db.InsertRandom<ClientTable>(count);
-            else if (selectedTable == "Company") db.InsertRandom<CompanyTable>(count);
-            else if (selectedTable == "Reservation") db.InsertRandom<ReservationTable>(count);
-            else if (selectedTable == "Sport_object") db.InsertRandom<SportObjectTable>(count);
+            //if (selectedTable == "Client") db.InsertRandom<ClientTable>(count);
+            //else if (selectedTable == "Company") db.InsertRandom<CompanyTable>(count);
+            //else if (selectedTable == "Reservation") db.InsertRandom<ReservationTable>(count);
+            //else if (selectedTable == "Sport_object") db.InsertRandom<SportObjectTable>(count);
         }
 
         private void Search_Click(object sender, EventArgs e)
@@ -167,21 +174,7 @@ namespace DB_lab1
 
         private void Statistic_Click(object sender, EventArgs e)
         {
-            string query = "SELECT ";
-            query += "c.name AS person_name, ";
-            query += "s.name AS object_name, ";
-            query += "COUNT(r.id) AS number_of_bookings, ";
-            query += "MIN(r.booking_start_date) AS first_booking_date, ";
-            query += "MAX(r.booking_end_date) AS last_booking_date, ";
-            query += "SUM(r.price) AS total_spent_money, ";
-            query += "c.email AS person_email ";
-            query += "FROM \"Client\" c ";
-            query += "JOIN \"Reservation\" r ON c.id = r.client_id ";
-            query += "JOIN \"Sport_object\" s ON r.object_id = s.id ";
-            query += "GROUP BY c.name, s.name, c.email ";
-            query += "order by person_name ";
-
-            db.Command(query);
+            db.GetReportResult();
         }
     }
 }

@@ -8,10 +8,4 @@ using System.Windows.Forms;
 
 public interface Table
 {
-    void Fill(NpgsqlDataReader reader);
-    void Fill(DataGridViewRow param);
-    string GetParam();
-    string GetAttr();
-    string AdditionalAttr();
-    int GetId();
 }

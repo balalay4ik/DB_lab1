@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Data;
 using System.Drawing;
 using System.Linq;
@@ -20,82 +21,45 @@ namespace DB_lab1
         private void InitTable()
         {
             ReservationTable reservation = table as ReservationTable;
-            textBox1.Text = reservation.Client_id.ToString();
-            textBox2.Text = reservation.Object_id.ToString();
-            dateTimePicker1.Value = reservation.Booking_start_date;
-            dateTimePicker2.Value = reservation.Booking_end_date;
-            textBox3.Text = reservation.Price.ToString();
+            textBox1.Text = reservation.client_id.ToString();
+            textBox2.Text = reservation.object_id.ToString();
+            dateTimePicker1.Value = reservation.booking_start_date;
+            dateTimePicker2.Value = reservation.booking_end_date;
+            textBox3.Text = reservation.price.ToString();
         }
 
         private string errorMsg = " не повино бути null";
 
         private void AddRow()
         {
-            
-
-            string attrName = "";
-            string attr = "";
-            if (textBox1.Text != "")
-            {
-                attr += $", {textBox1.Text}";
-                attrName += $", {label1.Text}";
-            }
-            else
+            if (textBox1.Text == "")
             {
                 errormsg.Text = label1.Text + errorMsg;
                 return;
             }
 
-            if (textBox2.Text != "")
-            {
-                attr += $", {textBox2.Text}";
-                attrName += $", {label2.Text}";
-            }
-            else
+            if (textBox2.Text == "")
             {
                 errormsg.Text = label2.Text + errorMsg;
                 return;
             }
 
-            if (textBox3.Text != "")
-            {
-                attr += $", {textBox3.Text}";
-                attrName += $", {label3.Text}";
-            }
-            else
+            if (textBox3.Text == "")
             {
                 errormsg.Text = label3.Text + errorMsg;
                 return;
             }
 
+            ReservationTable reservation = new ReservationTable()
+            {
+                client_id = Convert.ToInt32(textBox1.Text),
+                object_id = Convert.ToInt32(textBox2.Text),
+                price = Convert.ToInt32(textBox3.Text),
+            };
 
             try
             {
-                Convert.ToDateTime(dateTimePicker1.Value);
-                attr += $", '{dateTimePicker1.Value}'";
-                attrName += $", {label4.Text}";
-            }
-            catch (Exception er)
-            {
-                errormsg.Text = er.Message.ToString();
-                return;
-            }
-
-            try
-            {
-                Convert.ToDateTime(dateTimePicker2.Value);
-                attr += $", '{dateTimePicker2.Value}'";
-                attrName += $", {label5.Text}";
-            }
-            catch (Exception er)
-            {
-                errormsg.Text = er.Message.ToString();
-                return;
-            }
-
-            try
-            {
-                db.Insert<ReservationTable>(attr, attrName);
+                db.Insert(reservation);
             }
             catch (Exception er)
             {
@@ -108,65 +72,35 @@ namespace DB_lab1
 
         private void EditRow()
         {
-            string attr = "";
-
-            if (textBox1.Text != "")
-            {
-                attr += $"\"{label1.Text}\" = {textBox1.Text}";
-            }
-            else
+            if (textBox1.Text == "")
             {
                 errormsg.Text = label1.Text + errorMsg;
                 return;
             }
 
-            if (textBox2.Text != "")
-            {
-                attr += $", \"{label2.Text}\" = {textBox2.Text}";
-            }
-            else
+            if (textBox2.Text == "")
             {
                 errormsg.Text = label2.Text + errorMsg;
                 return;
             }
 
-            if (textBox3.Text != "")
-            {
-                attr += $", \"{label3.Text}\" = {textBox3.Text}";
-            }
-            else
+            if (textBox3.Text == "")
             {
                 errormsg.Text = label3.Text + errorMsg;
                 return;
             }
 
+            ReservationTable reservation = new ReservationTable()
+            {
+                id = (table as ReservationTable).id,
+                client_id = Convert.ToInt32(textBox1.Text),
+                object_id = Convert.ToInt32(textBox2.Text),
+                price = Convert.ToInt32(textBox3.Text),
+            };
 
             try
             {
-                Convert.ToDateTime(dateTimePicker1.Value);
-                attr += $", \"{label4.Text}\" = '{dateTimePicker1.Value}'";
-            }
-            catch (Exception er)
-            {
-                errormsg.Text = er.Message.ToString();
-                return;
-            }
-
-            try
-            {
-                Convert.ToDateTime(dateTimePicker2.Value);
-                attr += $", \"{label5.Text}\" = '{dateTimePicker2.Value}'";
-            }
-            catch (Exception er)
-            {
-                errormsg.Text = er.Message.ToString();
-                return;
-            }
-
-
-            try
-            {
-                db.Edit<ReservationTable>(table.GetId(), attr);
+                db.Edit<ReservationTable>(reservation.id, reservation);
             }
             catch (Exception er)
             {
@@ -197,7 +131,7 @@ namespace DB_lab1
 
         }
 
-        public override void SearchMode(DataBase DB)
+        public override void SearchMode(DataBaseContext DB)
         {
             db = DB;
             this.Controls.Remove(button1);
@@ -220,41 +154,20 @@ namespace DB_lab1
 
         private void Filt()
         {
-            string attr = "";
+            int? clientId = String.IsNullOrEmpty(textBox1.Text) ? -1 : Convert.ToInt32(textBox1.Text);
+            int? objectId = String.IsNullOrEmpty(textBox2.Text) ? -1 : Convert.ToInt32(textBox2.Text);
+            int? _price = String.IsNullOrEmpty(textBox3.Text) ? -1 : Convert.ToInt32(textBox3.Text);
 
-            List<string> conditions = new List<string>();
-
-            if (!string.IsNullOrEmpty(textBox1.Text))
-            {
-                conditions.Add($"{label1.Text} = '{textBox1.Text}'");
-            }
-
-            if (!string.IsNullOrEmpty(textBox2.Text))
-            {
-                conditions.Add($"{label2.Text} = '{textBox2.Text}'");
-            }
-
-            if (!string.IsNullOrEmpty(textBox3.Text))
-            {
-                conditions.Add($"{label3.Text} = {textBox3.Text}");
-            }
-
-            if (!string.IsNullOrEmpty(dateTimePicker1.Value.ToString()))
-            {
-                conditions.Add($"{label4.Text} >= '{dateTimePicker1.Value}'");
-            }
-
-            if (!string.IsNullOrEmpty(dateTimePicker2.Value.ToString()))
-            {
-                conditions.Add($"{label5.Text} <= '{dateTimePicker2.Value}'");
-            }
-
-            if (conditions.Count > 0)
-            {
-                attr = string.Join(" AND ", conditions);
-            }
-
-            db.Search<ReservationTable>(attr);
+            DateTime bookingStartDate = dateTimePicker1.Value;
+            DateTime bookingEndDate = dateTimePicker2.Value;
+            db.Search<ReservationTable>(
+            x =>
+            (clientId == -1 || x.client_id == clientId || x.client_id == null) &&
+                        (objectId == -1 || x.object_id == objectId || x.object_id == null) &&
+                        (x.booking_start_date >= bookingStartDate) &&
+                        (x.booking_end_date <= bookingEndDate) &&
+                        (_price == -1 || x.price == _price || x.price == null)
+                );
         }
     }
 }

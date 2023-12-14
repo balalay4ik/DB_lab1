@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore.Diagnostics;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Data;
 using System.Drawing;
 using System.Linq;
@@ -33,9 +35,9 @@ namespace DB_lab1
         private void InitTable()
         {
             ClientTable client = table as ClientTable;
-            textBox1.Text = client.Name;
-            textBox2.Text = client.Company_id.ToString();
-            textBox3.Text = client.Email;
+            textBox1.Text = client.name;
+            textBox2.Text = client.company_id.ToString();
+            textBox3.Text = client.email;
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -46,33 +48,23 @@ namespace DB_lab1
 
         private void AddRow()
         {
-            string attrName = "";
-            string attr = "";
-            if (textBox1.Text != "")
-            {
-                attr += $", '{textBox1.Text}'";
-                attrName += $", {label1.Text}";
-            }
-            else
+            if (textBox1.Text == "")
             {
                 errormsg.Text = "name не повино бути null";
                 return;
             }
 
-            if (textBox2.Text != "")
+            ClientTable client = new ClientTable()
             {
-                attr += $", {textBox2.Text}";
-                attrName += $", {label2.Text}";
-            }
-            if (textBox3.Text != "")
-            {
-                attr += $", '{textBox3.Text}'";
-                attrName += $", {label3.Text}";
-            }
+                name = textBox1.Text,
+                company_id = String.IsNullOrEmpty(textBox2.Text) ? null : Convert.ToInt32(textBox2.Text),
+                email = textBox3.Text
+            };
+
 
             try
             {
-                db.Insert<ClientTable>(attr, attrName);
+                db.Insert(client);
             }
             catch (Exception er)
             {
@@ -85,32 +77,17 @@ namespace DB_lab1
 
         private void EditRow()
         {
-            string attr = "";
-
-            if (textBox1.Text != "")
+            ClientTable client = new ClientTable()
             {
-                attr += $"\"{label1.Text}\" = \'{textBox1.Text}\'";
-            }
-            else
-            {
-                errormsg.Text = "name не повино бути null";
-                return;
-            }
-
-            if (textBox2.Text != "")
-            {
-                attr += $", {label2.Text} = {textBox2.Text}";
-            }
-            else
-                attr += $", {label2.Text} = NULL";
-
-
-            attr += $", {label3.Text} = \'{textBox3.Text}\'";
-
+                id = (table as ClientTable).id,
+                name = textBox1.Text,
+                company_id = String.IsNullOrEmpty(textBox2.Text) ? null : Convert.ToInt32(textBox2.Text),
+                email = textBox3.Text
+            };
 
             try
             {
-                db.Edit<ClientTable>(table.GetId(), attr);
+                db.Edit<ClientTable>(client.id, client);
             }
             catch (Exception er)
             {
@@ -132,7 +109,7 @@ namespace DB_lab1
             this.Close();
         }
 
-        public override void SearchMode(DataBase DB)
+        public override void SearchMode(DataBaseContext DB)
         {
             db = DB;
             this.Controls.Remove(button1);
@@ -143,31 +120,14 @@ namespace DB_lab1
 
         private void Filter(object sender, KeyEventArgs e)
         {
-            string attr = "";
+            int? companyId = String.IsNullOrEmpty(textBox2.Text) ? -1 : Convert.ToInt32(textBox2.Text);
 
-            List<string> conditions = new List<string>();
-
-            if (!string.IsNullOrEmpty(textBox1.Text))
-            {
-                conditions.Add($"{label1.Text} LIKE '%{textBox1.Text}%'");
-            }
-
-            if (!string.IsNullOrEmpty(textBox2.Text))
-            {
-                conditions.Add($"{label2.Text} = '{textBox2.Text}'");
-            }
-
-            if (!string.IsNullOrEmpty(textBox3.Text))
-            {
-                conditions.Add($"{label3.Text} LIKE '%{textBox3.Text}%'");
-            }
-
-            if (conditions.Count > 0)
-            {
-                attr = string.Join(" AND ", conditions);
-            }
-
-            db.Search<ClientTable>(attr);
+            db.Search<ClientTable>(
+                x =>
+                    (string.IsNullOrEmpty(textBox1.Text) || x.name.Contains(textBox1.Text)) &&
+                    (companyId == -1 || x.company_id == companyId || x.company_id == null) &&
+                    (string.IsNullOrEmpty(textBox3.Text) || x.email.Contains(textBox3.Text))
+            );
         }
     }
 }
